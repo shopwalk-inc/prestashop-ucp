@@ -1,0 +1,19 @@
+# Build artifacts
+*.zip
+dist/
+vendor/
+node_modules/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# PrestaShop local state
+shopwalk_ucp/cache/
+shopwalk_ucp/logs/
+
+# Env / secrets
+.env
+.env.*

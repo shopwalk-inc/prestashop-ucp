@@ -1,0 +1,22 @@
+{
+    "name": "shopwalk-inc/prestashop-ucp",
+    "description": "Universal Commerce Protocol adapter for PrestaShop",
+    "type": "prestashop-module",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Shopwalk, Inc.",
+            "homepage": "https://shopwalk.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "classmap": ["classes/"]
+    },
+    "config": {
+        "prepend-autoloader": false,
+        "preferred-install": "dist"
+    }
+}

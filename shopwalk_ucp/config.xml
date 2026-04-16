@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>shopwalk_ucp</name>
+    <displayName><![CDATA[Shopwalk UCP]]></displayName>
+    <version><![CDATA[0.1.0]]></version>
+    <description><![CDATA[Universal Commerce Protocol adapter for PrestaShop.]]></description>
+    <author><![CDATA[Shopwalk, Inc.]]></author>
+    <tab><![CDATA[administration]]></tab>
+    <confirmUninstall><![CDATA[Are you sure? Uninstalling removes UCP endpoints, OAuth clients, tokens, sessions and webhook subscriptions.]]></confirmUninstall>
+    <is_configurable>1</is_configurable>
+    <need_instance>0</need_instance>
+    <limited_countries></limited_countries>
+</module>
