@@ -17,3 +17,7 @@ shopwalk_ucp/logs/
 # Env / secrets
 .env
 .env.*
+
+# PHPUnit / tooling
+.phpunit.result.cache
+composer.lock

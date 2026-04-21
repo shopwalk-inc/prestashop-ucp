@@ -98,11 +98,21 @@ class UcpCheckoutEngine
     }
 
     /**
-     * Finalize: create PS Order, mark session completed.
-     * Payment is out of scope for v0.1 — the "Pay via UCP" payment module
-     * is registered, so /complete creates a pending order payable via the
-     * store's native checkout page. Agents surface the resulting
-     * `payment_url` to the buyer (per UCP Direct Checkout convention).
+     * Finalize: create PS Order, attempt agent-native payment via the
+     * UcpPaymentRouter if the session includes payment credentials, and
+     * mark the session completed.
+     *
+     * Flow:
+     *   1. Create order via PaymentModule::validateOrder in PS_OS_PREPARATION
+     *      (awaiting payment).
+     *   2. If session.payment.gateway is set, dispatch through the router.
+     *      - On hard success, transition to PS_OS_PAYMENT.
+     *      - On soft fail (3DS), keep in PS_OS_PREPARATION and return a
+     *        payment_url so the buyer can complete payment natively.
+     *      - On hard fail, transition to PS_OS_ERROR and return an error.
+     *   3. If no payment gateway given, fall back to the "pay at store"
+     *      Direct Checkout path — keep in PS_OS_PREPARATION and return the
+     *      native payment_url as the handoff surface.
      */
     public static function complete(UcpCheckoutSession $session): array
     {
@@ -114,8 +124,8 @@ class UcpCheckoutEngine
         }
         if ($session->status !== UcpCheckoutSession::STATUS_READY_FOR_COMPLETE) {
             return [
-                'ok'    => false,
-                'error' => 'session_not_ready',
+                'ok'     => false,
+                'error'  => 'session_not_ready',
                 'reason' => 'Call PUT to supply buyer + fulfillment first',
             ];
         }
@@ -131,11 +141,10 @@ class UcpCheckoutEngine
         require_once __DIR__ . '/UcpPaymentModule.php';
 
         try {
-            $paymentModuleName = 'shopwalk_ucp';
-            $payment = new PaymentModule();
-            $payment->name = $paymentModuleName;
+            $payment              = new PaymentModule();
+            $payment->name        = 'shopwalk_ucp';
             $payment->displayName = 'Pay via UCP';
-            $totalPaid = (float) $cart->getOrderTotal(true, Cart::BOTH);
+            $totalPaid            = (float) $cart->getOrderTotal(true, Cart::BOTH);
 
             $ok = $payment->validateOrder(
                 (int) $cart->id,
@@ -156,14 +165,111 @@ class UcpCheckoutEngine
             return ['ok' => false, 'error' => 'order_create_failed', 'reason' => 'validateOrder returned false'];
         }
 
-        $session->id_order = (int) $payment->currentOrder;
+        $orderId = (int) $payment->currentOrder;
+        $order   = new Order($orderId);
+
+        $paymentRequest = json_decode((string) $session->payment, true);
+        if (!is_array($paymentRequest)) {
+            $paymentRequest = [];
+        }
+
+        $gateway = isset($paymentRequest['gateway']) ? (string) $paymentRequest['gateway'] : '';
+        if ($gateway !== '' && class_exists('UcpPaymentRouter')) {
+            $result = UcpPaymentRouter::authorize($order, $paymentRequest);
+
+            if (!empty($result['ok'])) {
+                // Hard success — advance to PS_OS_PAYMENT so downstream
+                // webhooks + merchant workflows see payment confirmed.
+                self::transitionOrderTo($order, (int) Configuration::get('PS_OS_PAYMENT'));
+                $session->id_order = $orderId;
+                $session->status   = UcpCheckoutSession::STATUS_COMPLETED;
+                $session->save();
+                return ['ok' => true, 'id_order' => $orderId];
+            }
+
+            if (!empty($result['soft'])) {
+                // Soft fail (3DS / requires_action). Keep order pending and
+                // hand the agent a payment_url.
+                $session->id_order = $orderId;
+                $session->status   = UcpCheckoutSession::STATUS_COMPLETED;
+                $session->save();
+                return [
+                    'ok'          => true,
+                    'id_order'    => $orderId,
+                    'payment_url' => self::paymentUrlFor($order),
+                    'soft_fail'   => $result,
+                ];
+            }
+
+            // Hard fail — cancel the order so merchant dashboards don't
+            // show a stuck pending. PS_OS_ERROR is the canonical "payment
+            // error" state.
+            self::transitionOrderTo($order, (int) Configuration::get('PS_OS_ERROR'));
+            $session->status = UcpCheckoutSession::STATUS_REQUIRES_ESCALATION;
+            $session->save();
+            return [
+                'ok'      => false,
+                'error'   => isset($result['error']) ? (string) $result['error'] : 'payment_failed',
+                'reason'  => isset($result['message']) ? (string) $result['message'] : 'Payment failed',
+                'status'  => isset($result['status']) ? (int) $result['status'] : 402,
+            ];
+        }
+
+        // No agent-native payment path — session completes with a
+        // payment_url for the Direct Checkout handoff. Order stays in
+        // PS_OS_PREPARATION until the buyer pays on the store's checkout.
+        $session->id_order = $orderId;
         $session->status   = UcpCheckoutSession::STATUS_COMPLETED;
         $session->save();
 
         return [
-            'ok'       => true,
-            'id_order' => (int) $payment->currentOrder,
+            'ok'          => true,
+            'id_order'    => $orderId,
+            'payment_url' => self::paymentUrlFor($order),
         ];
+    }
+
+    protected static function transitionOrderTo(Order $order, int $idOrderState): void
+    {
+        if ($idOrderState <= 0) {
+            return;
+        }
+        try {
+            $history = new OrderHistory();
+            $history->id_order = (int) $order->id;
+            $history->changeIdOrderState($idOrderState, (int) $order->id);
+            $history->addWithemail();
+        } catch (Throwable $e) {
+            PrestaShopLogger::addLog(
+                '[shopwalk_ucp] Failed to transition order ' . (int) $order->id
+                    . ' to state ' . $idOrderState . ': ' . $e->getMessage(),
+                2
+            );
+        }
+    }
+
+    protected static function paymentUrlFor(Order $order): string
+    {
+        if (!$order->id) {
+            return '';
+        }
+        $cart     = new Cart((int) $order->id_cart);
+        $customer = new Customer((int) $order->id_customer);
+        $module   = Module::getInstanceByName('shopwalk_ucp');
+        if (!Validate::isLoadedObject($cart) || !Validate::isLoadedObject($customer) || !$module) {
+            return '';
+        }
+        return Context::getContext()->link->getPageLink(
+            'order-confirmation',
+            true,
+            null,
+            [
+                'id_cart'   => (int) $cart->id,
+                'id_module' => (int) $module->id,
+                'id_order'  => (int) $order->id,
+                'key'       => $customer->secure_key,
+            ]
+        );
     }
 
     public static function cancel(UcpCheckoutSession $session): void

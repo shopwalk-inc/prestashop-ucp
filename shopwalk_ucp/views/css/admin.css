@@ -1,3 +1,59 @@
-.shopwalk-ucp-panel dt { font-weight: 600; margin-top: .5rem; }
-.shopwalk-ucp-panel dd { margin-bottom: .25rem; }
-.shopwalk-ucp-panel pre { padding: 8px; background: #f5f5f5; border-radius: 4px; white-space: pre-wrap; word-break: break-all; }
+/* Shopwalk UCP — admin dashboard styles.
+ * Palette mirrors woocommerce-ucp for consistency across the UCP plugin
+ * family: green/ok, amber/warn, red/fail, soft grey card backgrounds. */
+
+.shopwalk-ucp-dashboard .panel { padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.shopwalk-ucp-dashboard .panel-heading {
+    font-size: 1rem;
+    font-weight: 600;
+    padding-bottom: .5rem;
+    margin-bottom: .75rem;
+    border-bottom: 1px solid #eee;
+}
+.shopwalk-ucp-dashboard h3 { font-size: 1rem; margin-top: 1rem; }
+.shopwalk-ucp-dashboard code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
+.shopwalk-ucp-dashboard pre {
+    padding: 8px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.sw-grid { display: grid; grid-template-columns: 180px 1fr; gap: 4px 12px; }
+.sw-grid dt { font-weight: 600; margin: 0; }
+.sw-grid dd { margin: 0; }
+
+.sw-status { font-weight: 500; }
+.sw-status-ok   { color: #2b8a3e; }
+.sw-status-warn { color: #b58900; }
+.sw-status-fail { color: #c92a2a; }
+.sw-status-off  { color: #868e96; }
+
+.sw-self-test td, .sw-self-test th { vertical-align: middle; }
+
+.sw-payments strong { font-family: monospace; }
+
+.sw-probe-out {
+    margin-top: .75rem;
+    padding: .5rem;
+    border-radius: 4px;
+    background: #f5f5f5;
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    min-height: 1em;
+}
+.sw-probe-out:empty { display: none; }
+
+.sw-probe {
+    margin-left: .5rem;
+    font-size: 11px;
+    padding: 2px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background: #fff;
+    cursor: pointer;
+}
+.sw-probe:hover { background: #f5f5f5; }

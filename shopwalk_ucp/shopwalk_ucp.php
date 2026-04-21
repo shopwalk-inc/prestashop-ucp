@@ -23,6 +23,8 @@ require_once __DIR__ . '/classes/UcpDiscovery.php';
 require_once __DIR__ . '/classes/UcpEnvelope.php';
 require_once __DIR__ . '/classes/UcpSigning.php';
 require_once __DIR__ . '/classes/UcpWebhookDispatcher.php';
+require_once __DIR__ . '/classes/UcpPaymentRouter.php';
+require_once __DIR__ . '/classes/UcpPaymentAdapterStripe.php';
 
 class Shopwalk_Ucp extends Module
 {
@@ -197,6 +199,12 @@ class Shopwalk_Ucp extends Module
                 'rule'       => 'ucp/v1/internal/webhooks/flush',
                 'keywords'   => [],
                 'controller' => 'webhookflush',
+                'params'     => ['fc' => 'module', 'module' => 'shopwalk_ucp'],
+            ],
+            'module-shopwalk_ucp-checkout' => [
+                'rule'       => 'shopwalk-ucp/v1/checkout',
+                'keywords'   => [],
+                'controller' => 'checkout',
                 'params'     => ['fc' => 'module', 'module' => 'shopwalk_ucp'],
             ],
         ];
