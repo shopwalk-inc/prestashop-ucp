@@ -17,7 +17,8 @@ Vendor-neutral: the module runs without any signup or connection to any specific
   - Orders (list / detail / fulfillment events)
   - Webhook subscriptions with signed outbound delivery
 - Registers a "Pay via UCP" payment method so agent-originated orders settle natively.
-- Ships an admin dashboard with UCP status, active-agent log, and a self-test runner.
+- Ships an admin dashboard with UCP status, active-agent log, payment-adapter status, and a self-test runner.
+- **Payment router architecture** — agents pass a gateway id (e.g. `stripe`) and an already-tokenized credential; the router dispatches to a platform-side adapter (`UcpPaymentAdapterStripe`) that reuses the merchant's existing PS Stripe module keys. Third-party modules extend support for additional gateways via `UcpPaymentRouter::addAdapter('ppcp', 'My_PPCP_Adapter')`.
 
 ---
 
@@ -153,6 +154,14 @@ shopwalk_ucp/
 | POST | `/ucp/v1/webhooks/subscriptions` |
 | GET | `/ucp/v1/webhooks/subscriptions/{id}` |
 | DELETE | `/ucp/v1/webhooks/subscriptions/{id}` |
+
+### Shopwalk Direct Checkout (Tier 2 — optional)
+
+| Method | Path | Auth |
+|---|---|---|
+| POST | `/shopwalk-ucp/v1/checkout` | `X-License-Key` |
+
+Not part of the UCP spec — a one-shot order-creation fallback for agents that prefer a pay-at-store handoff over the full UCP session state machine. Returns a `payment_url` the buyer completes on the store's native checkout page.
 
 All requests from agents must include:
 

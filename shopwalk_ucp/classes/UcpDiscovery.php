@@ -52,13 +52,18 @@ class UcpDiscovery
             ],
         ];
 
+        $paymentHandlers = [];
+        if (class_exists('UcpPaymentRouter')) {
+            $paymentHandlers = UcpPaymentRouter::discoveryHints();
+        }
+
         return [
             'ucp' => [
-                'version'        => Shopwalk_Ucp::UCP_SPEC_VERSION,
-                'services'       => $services,
-                'capabilities'   => $capabilities,
-                'payment_handlers' => (object) [],
-                'signing_keys'   => self::signingKeys(),
+                'version'          => Shopwalk_Ucp::UCP_SPEC_VERSION,
+                'services'         => $services,
+                'capabilities'     => $capabilities,
+                'payment_handlers' => empty($paymentHandlers) ? (object) [] : $paymentHandlers,
+                'signing_keys'     => self::signingKeys(),
             ],
             'id'     => $base,
             'name'   => UcpConfig::storeName(),

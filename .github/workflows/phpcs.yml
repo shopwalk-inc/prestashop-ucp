@@ -1,0 +1,44 @@
+name: phpcs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: PSR-12 + PrestaShop coding standards
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: shopwalk_ucp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+          tools: composer:v2, cs2pr
+
+      - name: Install PHP_CodeSniffer + PrestaShop standards
+        run: |
+          composer global require --dev \
+            squizlabs/php_codesniffer:^3.10 \
+            prestashop/php-dev-tools:^5.0 \
+            dealerdirect/phpcodesniffer-composer-installer:^1.0 || true
+          echo "$HOME/.composer/vendor/bin" >> $GITHUB_PATH
+
+      - name: Verify standards installed
+        run: phpcs -i || true
+
+      - name: Run phpcs (PSR12)
+        run: |
+          phpcs --standard=PSR12 \
+                --extensions=php \
+                --ignore=vendor/,tests/bootstrap.php \
+                --report=checkstyle \
+                -q classes/ controllers/ shopwalk_ucp.php | cs2pr || true
