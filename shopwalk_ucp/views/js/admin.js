@@ -73,6 +73,41 @@
         });
     }
 
+    var discoveryToggle = document.getElementById('sw-discovery-toggle');
+    var discoveryStatus = document.getElementById('sw-discovery-status');
+    if (discoveryToggle && window.SHOPWALK_UCP.toggleDiscoveryUrl) {
+        discoveryToggle.addEventListener('change', function () {
+            var enable = discoveryToggle.checked;
+            var prev = !enable;
+            if (!enable && !confirm('Pause AI discovery? Your store and products will be hidden from search, AI shopping, and store pages within ~2 minutes. Existing orders are unaffected.')) {
+                discoveryToggle.checked = true;
+                return;
+            }
+            discoveryToggle.disabled = true;
+            if (discoveryStatus) discoveryStatus.textContent = enable ? 'Resuming…' : 'Pausing…';
+            var url = window.SHOPWALK_UCP.toggleDiscoveryUrl + '&enable=' + (enable ? '1' : '0');
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) return;
+                discoveryToggle.disabled = false;
+                var ok = xhr.status >= 200 && xhr.status < 300;
+                if (ok) {
+                    if (discoveryStatus) discoveryStatus.textContent = enable ? 'Discovery resumed.' : 'Discovery paused.';
+                } else {
+                    discoveryToggle.checked = prev;
+                    var msg = 'Failed.';
+                    try {
+                        var resp = JSON.parse(xhr.responseText);
+                        msg = (resp && resp.message) || msg;
+                    } catch (e) {}
+                    if (discoveryStatus) discoveryStatus.textContent = msg;
+                }
+            };
+            xhr.send();
+        });
+    }
+
     if (probes && probeOut) {
         for (var i = 0; i < probes.length; i++) {
             probes[i].addEventListener('click', function (e) {
