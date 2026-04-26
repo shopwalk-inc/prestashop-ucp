@@ -50,7 +50,9 @@ class AdminShopwalkUcpController extends ModuleAdminController
             'self_test_ajax'    => self::ajaxUrl('SelfTest'),
             'payments_status_ajax' => self::ajaxUrl('PaymentsStatus'),
             'probe_ajax'        => self::ajaxUrl('Probe'),
+            'toggle_discovery_ajax' => self::ajaxUrl('ToggleDiscovery'),
             'license_active'    => (string) Configuration::get('SHOPWALK_UCP_LICENSE_KEY') !== '',
+            'discovery_paused'  => (bool) Configuration::get('SHOPWALK_UCP_DISCOVERY_PAUSED'),
         ]);
 
         // Dashboard CSS + JS
@@ -83,6 +85,50 @@ class AdminShopwalkUcpController extends ModuleAdminController
         $this->requireValidToken();
         $this->jsonResponse([
             'adapters' => self::collectPaymentAdapters(),
+        ]);
+    }
+
+    public function ajaxProcessToggleDiscovery()
+    {
+        $this->requireValidToken();
+
+        $licenseKey = (string) Configuration::get('SHOPWALK_UCP_LICENSE_KEY');
+        if ($licenseKey === '') {
+            $this->jsonError('not_connected', 'No Shopwalk license configured', 400);
+        }
+
+        $enable = (string) Tools::getValue('enable') === '1';
+        $action = $enable ? 'enable' : 'disable';
+        $apiBase = rtrim((string) Configuration::get('SHOPWALK_UCP_API_BASE') ?: 'https://api.shopwalk.com/api/v1', '/');
+        $url = $apiBase . '/plugin/discovery/' . $action;
+
+        $code = 0;
+        $body = '';
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_TIMEOUT        => 5,
+                CURLOPT_HTTPHEADER     => [
+                    'Content-Type: application/json',
+                    'X-SW-License-Key: ' . $licenseKey,
+                ],
+                CURLOPT_POSTFIELDS     => json_encode(['plugin_key' => $licenseKey]),
+            ]);
+            $body = (string) curl_exec($ch);
+            $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+        }
+
+        if ($code < 200 || $code >= 300) {
+            $this->jsonError('upstream_failed', 'Could not reach Shopwalk. Try again in a moment.', 502);
+        }
+
+        Configuration::updateValue('SHOPWALK_UCP_DISCOVERY_PAUSED', $enable ? '0' : '1');
+        $this->jsonResponse([
+            'success' => true,
+            'paused'  => !$enable,
         ]);
     }
 

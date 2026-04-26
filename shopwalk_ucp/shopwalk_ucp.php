@@ -29,7 +29,7 @@ require_once __DIR__ . '/classes/UcpPaymentAdapterStripe.php';
 class Shopwalk_Ucp extends Module
 {
     const UCP_SPEC_VERSION = '2026-04-08';
-    const MODULE_VERSION   = '0.1.0';
+    const MODULE_VERSION   = '0.2.0';
 
     public function __construct()
     {

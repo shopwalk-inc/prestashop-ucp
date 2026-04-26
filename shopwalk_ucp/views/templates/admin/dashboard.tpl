@@ -110,6 +110,19 @@
         {if $license_active}
             <p><span class="sw-status sw-status-ok">&#9989; Connected</span>
                 &mdash; your store is pushing real-time product updates to Shopwalk.</p>
+
+            <div class="sw-discovery-toggle">
+                <label style="display:flex;gap:10px;align-items:center;cursor:pointer">
+                    <input type="checkbox"
+                           id="sw-discovery-toggle"
+                           {if !$discovery_paused}checked{/if}>
+                    <strong>Allow Shopwalk to surface my store in AI discovery</strong>
+                </label>
+                <p style="margin:6px 0 0;color:#6b7280;font-size:12px">
+                    When off, your store and products are hidden from AI search, shopping flows, and store pages within ~2 minutes. The plugin stays connected; existing orders are unaffected.
+                </p>
+                <span id="sw-discovery-status" style="color:#6b7280;font-size:12px"></span>
+            </div>
         {else}
             <p>
                 Your store is UCP-compliant on its own. Connect to Shopwalk for a faster index,
@@ -127,6 +140,7 @@
     window.SHOPWALK_UCP = {
         selfTestUrl: {$self_test_ajax|json_encode},
         paymentsStatusUrl: {$payments_status_ajax|json_encode},
-        probeUrl: {$probe_ajax|json_encode}
+        probeUrl: {$probe_ajax|json_encode},
+        toggleDiscoveryUrl: {$toggle_discovery_ajax|json_encode}
     };
 </script>
