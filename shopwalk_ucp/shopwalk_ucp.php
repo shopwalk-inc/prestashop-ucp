@@ -1,6 +1,6 @@
 <?php
 /**
- * Shopwalk UCP — Universal Commerce Protocol adapter for PrestaShop
+ * Shopwalk for PrestaShop — UCP-compliant agent commerce module
  *
  * Makes any PrestaShop store fully purchasable by UCP-compliant AI shopping
  * agents (Shopwalk, OpenAI, Anthropic, LangChain, custom). Implements the
@@ -43,7 +43,7 @@ class Shopwalk_Ucp extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->l('Shopwalk UCP');
+        $this->displayName = $this->l('Shopwalk for PrestaShop');
         $this->description = $this->l('Universal Commerce Protocol adapter for PrestaShop. Exposes UCP-compliant checkout, OAuth identity, orders and webhooks so any AI shopping agent can transact with this store.');
         $this->confirmUninstall = $this->l('Are you sure? Uninstalling removes UCP endpoints, OAuth clients, tokens, sessions and webhook subscriptions. Completed orders stay in PrestaShop.');
     }
