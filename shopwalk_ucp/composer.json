@@ -1,6 +1,6 @@
 {
-    "name": "shopwalk-inc/prestashop-ucp",
-    "description": "Universal Commerce Protocol adapter for PrestaShop",
+    "name": "shopwalk-inc/shopwalk-prestashop",
+    "description": "Shopwalk for PrestaShop — UCP-compliant agent commerce module",
     "type": "prestashop-module",
     "license": "GPL-2.0-or-later",
     "authors": [

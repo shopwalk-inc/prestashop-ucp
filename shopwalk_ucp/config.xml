@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
     <name>shopwalk_ucp</name>
-    <displayName><![CDATA[Shopwalk UCP]]></displayName>
+    <displayName><![CDATA[Shopwalk for PrestaShop]]></displayName>
     <version><![CDATA[0.1.0]]></version>
     <description><![CDATA[Universal Commerce Protocol adapter for PrestaShop.]]></description>
     <author><![CDATA[Shopwalk, Inc.]]></author>

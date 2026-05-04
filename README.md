@@ -1,6 +1,6 @@
-# prestashop-ucp
+# Shopwalk for PrestaShop
 
-**Universal Commerce Protocol adapter for PrestaShop.**
+**Shopwalk plugin for PrestaShop.** UCP-compliant.
 
 Makes any PrestaShop 1.7.8+ / 8.x store fully purchasable by UCP-compliant AI shopping agents (Shopwalk, OpenAI, Anthropic, LangChain, custom agents). Implements the [Universal Commerce Protocol](https://ucp.dev) spec version **2026-04-08** — checkout sessions, OAuth 2.0 identity, orders, webhooks.
 
@@ -25,8 +25,8 @@ Vendor-neutral: the module runs without any signup or connection to any specific
 ## Installation
 
 ```bash
-git clone https://github.com/shopwalk-inc/prestashop-ucp.git
-cd prestashop-ucp
+git clone https://github.com/shopwalk-inc/shopwalk-prestashop.git
+cd shopwalk-prestashop
 zip -r shopwalk_ucp.zip shopwalk_ucp
 ```
 
@@ -35,7 +35,7 @@ Upload `shopwalk_ucp.zip` in PrestaShop's **Modules → Module Manager → Uploa
 Alternatively, composer install for PS 8.x:
 
 ```bash
-composer require shopwalk-inc/prestashop-ucp
+composer require shopwalk-inc/shopwalk-prestashop
 ```
 
 After install, enable friendly URLs in **Shop Parameters → Traffic & SEO** so the `/ucp/v1/*` routes and `.well-known` discovery URIs resolve.
@@ -201,10 +201,10 @@ Uninstall drops every table.
 
 Companion plugins for other open-source platforms:
 
-- [woocommerce-ucp](https://github.com/shopwalk-inc/woocommerce-ucp) — WooCommerce
-- [magento-ucp](https://github.com/shopwalk-inc/magento-ucp) — Magento 2
-- prestashop-ucp — this repo
-- opencart-ucp — coming
+- [shopwalk-woocommerce](https://github.com/shopwalk-inc/shopwalk-woocommerce) — WooCommerce
+- [shopwalk-magento](https://github.com/shopwalk-inc/shopwalk-magento) — Magento 2
+- shopwalk-prestashop — this repo
+- [shopwalk-opencart](https://github.com/shopwalk-inc/shopwalk-opencart) — OpenCart
 
 Each implements the same UCP spec mapped to its platform's primitives.
 
